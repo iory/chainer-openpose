@@ -132,9 +132,9 @@ class COCOPersonKeypointsDataset(DatasetMixin):
 
 
 if __name__ == '__main__':
-    from chainer_openpose.visualizations.overlay import overlay_ignore_mask
-    from chainer_openpose.visualizations.overlay import overlay_pafs
-    from chainer_openpose.visualizations.overlay import overlay_heatmaps
+    from chainer_openpose.visualizations import overlay_ignore_mask
+    from chainer_openpose.visualizations import overlay_pafs
+    from chainer_openpose.visualizations import overlay_heatmaps
     from chainer_openpose.transforms.heatmap import generate_heatmaps
     from chainer_openpose.transforms.paf import generate_pafs
 
