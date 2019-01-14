@@ -5,7 +5,7 @@ import chainer.links as L
 
 class OpenPoseNet(chainer.Chain):
 
-    def __init__(self, out_channels=8, paf_out_channels=7 * 2):
+    def __init__(self, out_channels, paf_out_channels):
         super(OpenPoseNet, self).__init__()
 
         with self.init_scope():
