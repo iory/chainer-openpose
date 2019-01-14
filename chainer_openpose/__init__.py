@@ -8,3 +8,4 @@ __version__ = pkg_resources.get_distribution(
 from chainer_openpose import datasets  # NOQA
 from chainer_openpose import links  # NOQA
 from chainer_openpose import transforms  # NOQA
+from chainer_openpose import visualizations  # NOQA
