@@ -19,6 +19,7 @@ from chainer_openpose.transforms import random_flip
 from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
+from chainer_openpose.utils import makedirs
 
 
 class Transform(object):
@@ -72,8 +73,8 @@ def main():
     parser.add_argument('--augment', action='store_true')
     parser.set_defaults(test=False)
     args = parser.parse_args()
-    args.out = prepare_output_dir(args, args.out)
-    print("output file: {}".format(args.out))
+    result_output_path = prepare_output_dir(args, args.out)
+    print("output file: {}".format(result_output_path))
 
     model = OpenPoseNet(len(coco_utils.JointType) + 1,
                         len(coco_utils.coco_joint_pairs) * 2)
@@ -103,7 +104,7 @@ def main():
         train_iter, optimizer, device=args.gpu)
     trainer = training.Trainer(updater,
                                (args.iteration, 'iteration'),
-                               args.out)
+                               result_output_path)
 
     val_interval = (10 if args.test else 1000), 'iteration'
     log_interval = (1 if args.test else 20), 'iteration'
@@ -137,10 +138,8 @@ def main():
         pd = PoseDetector(
             model,
             device=args.gpu)
-        try:
-            os.makedirs(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration)))
-        except:
-            pass
+        makedirs(os.path.join(result_output_path, 'iteration-{}'.format(trainer.updater.iteration)))
+
         batch_size = imgs.shape[0]
         for i in range(batch_size):
             img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
@@ -151,7 +150,7 @@ def main():
                 person_pose_array,
                 coco_utils.coco_joint_pairs,
                 coco_utils.coco_skip_joint_pair_indices)
-            cv2.imwrite(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration),
+            cv2.imwrite(os.path.join(result_output_path, 'iteration-{}'.format(trainer.updater.iteration),
                                      'img-{}.png'.format(i)), img)
 
     trainer.extend(visualize_model)
