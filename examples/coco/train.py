@@ -73,6 +73,7 @@ def main():
     parser.set_defaults(test=False)
     args = parser.parse_args()
     args.out = prepare_output_dir(args, args.out)
+    print("output file: {}".format(args.out))
 
     model = OpenPoseNet(len(coco_utils.JointType) + 1,
                         len(coco_utils.coco_joint_pairs) * 2)
