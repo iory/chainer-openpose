@@ -144,21 +144,24 @@ def main():
             img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
             person_pose_array, scores = pd(chainer.cuda.to_cpu(img))
             img = np.array((img + 0.5) * 255.0, dtype=np.uint8)
-            img = draw_person_pose(img, person_pose_array, coco_utils.coco_joint_pairs)
+            img = overlay_pose(
+                img,
+                person_pose_array,
+                coco_utils.coco_joint_pairs,
+                coco_utils.coco_skip_joint_pair_indices)
             cv2.imwrite(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration),
                                      'img-{}.png'.format(i)), img)
 
     trainer.extend(visualize_model)
 
-    # Visualization.
-    trainer.extend(
-        extensions.OpenPoseVisReport(
-            test_iter,
-            model.mask_rcnn,
-            label_names=args.class_names,
-        ),
-        trigger=vis_interval)
-
+    # # Visualization.
+    # trainer.extend(
+    #     extensions.OpenPoseVisReport(
+    #         test_iter,
+    #         model.mask_rcnn,
+    #         label_names=args.class_names,
+    #     ),
+    #     trigger=vis_interval)
 
     if args.resume:
         chainer.serializers.load_npz(args.resume, trainer)
