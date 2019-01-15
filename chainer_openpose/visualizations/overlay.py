@@ -45,3 +45,41 @@ def overlay_pafs(img, pafs):
     mix_paf[paf_flags > 0] /= paf_flags[paf_flags > 0]
     img = overlay_paf(img, mix_paf)
     return img
+
+
+def overlay_pose(img, poses, joint_index_pairs,
+                 skip_connection_indices=[]):
+    if len(poses) == 0:
+        return img
+
+    connection_colors = [
+        [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255],
+        [0, 85, 255], [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0.],
+        [255, 0, 85], [170, 255, 0], [85, 255, 0], [170, 0, 255.], [0, 0, 255],
+        [0, 0, 255], [255, 0, 255], [170, 0, 255], [255, 0, 170],
+    ]
+
+    keypoint_colors = [
+        [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0],
+        [85, 255, 0], [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255],
+        [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], [170, 0, 255],
+        [255, 0, 255], [255, 0, 170], [255, 0, 85]]
+
+    canvas = img.copy()
+
+    # limbs
+    for pose in poses.round().astype('i'):
+        for i, (limb, color) in enumerate(
+                zip(joint_index_pairs, connection_colors)):
+            if i not in skip_connection_indices:
+                limb_ind = np.array(limb)
+                if np.all(pose[limb_ind][:, 2] != 0):
+                    joint1, joint2 = pose[limb_ind][:, :2]
+                    cv2.line(canvas, tuple(joint1), tuple(joint2), color, 2)
+
+    # joints
+    for pose in poses.round().astype('i'):
+        for i, ((x, y, v), color) in enumerate(zip(pose, keypoint_colors)):
+            if v != 0:
+                cv2.circle(canvas, (x, y), 3, color, -1)
+    return canvas
