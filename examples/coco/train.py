@@ -88,7 +88,7 @@ def main():
                                         eps=1e-08)
     optimizer.setup(train_chain)
 
-    train_datasets = COCOPersonKeypointsDataset(split='train')
+    train_datasets = COCOPersonKeypointsDataset(split='val')
     train = TransformDataset(train_datasets, Transform(mode='train'))
 
     if args.loaderjob:
@@ -105,6 +105,7 @@ def main():
 
     val_interval = (10 if args.test else 1000), 'iteration'
     log_interval = (1 if args.test else 20), 'iteration'
+    vis_interval = (args.vis_interval, 'iteration')
 
     trainer.extend(extensions.dump_graph('main/loss'))
     trainer.extend(extensions.snapshot(), trigger=val_interval)
@@ -148,6 +149,15 @@ def main():
                                      'img-{}.png'.format(i)), img)
 
     trainer.extend(visualize_model)
+
+    # Visualization.
+    trainer.extend(
+        extensions.OpenPoseVisReport(
+            test_iter,
+            model.mask_rcnn,
+            label_names=args.class_names,
+        ),
+        trigger=vis_interval)
 
 
     if args.resume:
