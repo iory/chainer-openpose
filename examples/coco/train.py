@@ -122,7 +122,7 @@ def main():
     ]), trigger=log_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1))
 
-    @chainer.training.make_extension(trigger=(1, 'iteration'))
+    @chainer.training.make_extension(trigger=vis_interval)
     def visualize_model(trainer):
         from pose_detector import PoseDetector
         import cv2
