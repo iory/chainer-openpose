@@ -14,13 +14,14 @@ def random_resize(img, ignore_mask, poses,
     bbox_sizes = (
         (joint_bboxes[:, 2:] - joint_bboxes[:, :2] + 1)**2).sum(axis=1)**0.5
 
-    min_scale = min_box_size / bbox_sizes.min()
-    max_scale = max_box_size / bbox_sizes.max()
+    box_min_scale = min_box_size / bbox_sizes.min()
+    box_max_scale = max_box_size / bbox_sizes.max()
 
-    min_scale = min(max(min_scale, min_scale), 1)
-    max_scale = min(max(max_scale, 1), max_scale)
+    box_min_scale = min(max(box_min_scale, min_scale), 1)
+    box_max_scale = min(max(box_max_scale, 1), max_scale)
 
-    scale = float((max_scale - min_scale) * random.random() + min_scale)
+    scale = float((box_max_scale - box_min_scale) *
+                  random.random() + box_min_scale)
     shape = (round(w * scale), round(h * scale))
 
     resized_img, resized_mask, resized_poses = resize(
