@@ -20,7 +20,6 @@ from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
 from pose_detector import PoseDetector
-from chainercv.links.model.ssd import GradientScaling
 
 
 def copy_vgg_params(model):
@@ -40,6 +39,22 @@ def copy_vgg_params(model):
         getattr(model, layer_name).W.data = pre_model[layer_name].W.data
         getattr(model, layer_name).b.data = pre_model[layer_name].b.data
     print('Done.')
+
+
+class GradientScaling(object):
+
+    name = 'GradientScaling'
+
+    def __init__(self, layer_names, scale):
+        self.layer_names = layer_names
+        self.scale = scale
+
+    def __call__(self, opt):
+        for layer_name in self.layer_names:
+            for param in opt.target[layer_name].params(False):
+                grad = param.grad
+                with chainer.cuda.get_device_from_array(grad):
+                    grad *= self.scale
 
 
 class Transform(object):
@@ -113,6 +128,16 @@ def main():
                                         beta2=0.999,
                                         eps=1e-08)
     optimizer.setup(train_chain)
+
+    layer_names = ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1',
+                   'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2']
+    for layer_name in layer_names:
+        train_chain.model[layer_name].disable_update()
+
+    layer_names = ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1',
+                   'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2',
+                   'conv4_3_CPM', 'conv4_4_CPM']
+    optimizer.add_hook(GradientScaling(layer_names, 1.0 / 4.0))
 
     train_datasets = COCOPersonKeypointsDataset(split='train')
     train = TransformDataset(train_datasets, Transform(mode='train'))
