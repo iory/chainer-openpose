@@ -35,6 +35,7 @@ class PoseDetector(object):
                  n_integ_points=10,
                  n_integ_points_thresh=8,
                  length_penalty_ratio=0.5,
+                 length_penalty_value=1.0,
                  inner_product_thresh=0.05):
         self.precise = precise
         self.model = model
@@ -51,6 +52,7 @@ class PoseDetector(object):
         self.n_integ_points = n_integ_points
         self.n_integ_points_thresh = n_integ_points_thresh
         self.length_penalty_ratio = length_penalty_ratio
+        self.length_penalty_value = length_penalty_value
         self.inner_product_thresh = inner_product_thresh
         if self.device >= 0:
             cuda.get_device_from_id(device).use()
@@ -175,7 +177,7 @@ class PoseDetector(object):
 
                 integ_value = inner_products.sum() / len(inner_products)
                 # vectorの長さが基準値以上の時にペナルティを与える
-                integ_value_with_dist_prior = integ_value + min(self.limb_length_ratio * img_len / norm - self.length_penalty_value, 0)
+                integ_value_with_dist_prior = integ_value + min(self.length_penalty_ratio * img_len / norm - self.length_penalty_value, 0)
 
                 n_valid_points = sum(inner_products > self.inner_product_thresh)
                 if n_valid_points > self.n_integ_points_thresh and integ_value_with_dist_prior > 0:
@@ -209,7 +211,7 @@ class PoseDetector(object):
         subsets = -1 * np.ones((0, 20))
 
         for l, connections in enumerate(all_connections):
-            joint_a, joint_b = self.coco_joint_pairs[l]
+            joint_a, joint_b = coco_joint_pairs[l]
 
             for ind_a, ind_b, score in connections[:, :3]:
                 ind_a, ind_b = int(ind_a), int(ind_b)
