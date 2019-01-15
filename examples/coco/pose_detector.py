@@ -1,3 +1,6 @@
+# this code is based on
+# https://github.com/DeNA/Chainer_Realtime_Multi-Person_Pose_Estimation
+
 from __future__ import division
 
 import cv2
@@ -12,6 +15,7 @@ from chainer import cuda
 import chainer.functions as F
 
 from chainer_openpose.datasets.coco.coco_utils import JointType
+from chainer_openpose.datasets.coco.coco_utils import coco_joint_pairs
 
 
 class PoseDetector(object):
@@ -181,10 +185,10 @@ class PoseDetector(object):
 
     def compute_connections(self, pafs, all_peaks, img_len, params):
         all_connections = []
-        for i in range(len(limbs_point)):
+        for i in range(len(coco_joint_pairs)):
             paf_index = [i*2, i*2 + 1]
             paf = pafs[paf_index]
-            limb_point = limbs_point[i]
+            limb_point = coco_joint_pairs[i]
             cand_a = all_peaks[all_peaks[:, 0] == limb_point[0]][:, 1:]
             cand_b = all_peaks[all_peaks[:, 0] == limb_point[1]][:, 1:]
 
@@ -205,7 +209,7 @@ class PoseDetector(object):
         subsets = -1 * np.ones((0, 20))
 
         for l, connections in enumerate(all_connections):
-            joint_a, joint_b = self.limbs_point[l]
+            joint_a, joint_b = self.coco_joint_pairs[l]
 
             for ind_a, ind_b, score in connections[:, :3]:
                 ind_a, ind_b = int(ind_a), int(ind_b)
@@ -266,7 +270,7 @@ class PoseDetector(object):
                     pass
 
         # delete low score subsets
-        keep = np.logical_and(subsets[:, -1] >= self.n_subset_limbs_thresh, subsets[:, -2]/subsets[:, -1] >= subset_score_thresh)
+        keep = np.logical_and(subsets[:, -1] >= self.n_subset_limbs_thresh, subsets[:, -2]/subsets[:, -1] >= self.subset_score_thresh)
         subsets = subsets[keep]
         return subsets
 
@@ -285,7 +289,7 @@ class PoseDetector(object):
         person_pose_array = np.array(person_pose_array)
         return person_pose_array
 
-    def detect_precise(self, orig_img):
+    def detect_precise(self, orig_img, params):
         orig_img_h, orig_img_w, _ = orig_img.shape
 
         pafs_sum = 0
@@ -340,10 +344,10 @@ class PoseDetector(object):
         x = x.transpose(2, 0, 1)
         return x[None, ]
 
-    def __call__(self, orig_img):
+    def __call__(self, orig_img, params=None):
         orig_img = orig_img.copy()
         if self.precise:
-            return self.detect_precise(orig_img)
+            return self.detect_precise(orig_img, params)
         orig_img_h, orig_img_w, _ = orig_img.shape
 
         input_w, input_h = self.compute_optimal_size(orig_img, self.inference_img_size)
@@ -364,7 +368,6 @@ class PoseDetector(object):
             pafs = pafs.get()
             cuda.get_device_from_id(self.device).synchronize()
 
-        params = None
         all_peaks = self.compute_peaks_from_heatmaps(heatmaps)
         if len(all_peaks) == 0:
             return np.empty((0, len(JointType), 3)), np.empty(0)
