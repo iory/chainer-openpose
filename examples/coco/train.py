@@ -54,7 +54,7 @@ def main():
                         help='Training minibatch size')
     parser.add_argument('--valbatchsize', '-b', type=int, default=4,
                         help='Validation minibatch size')
-    parser.add_argument('--vis-interval', '-b', type=int, default=20)
+    parser.add_argument('--vis-interval', type=int, default=20)
     parser.add_argument('--val-samples', type=int, default=100,
                         help='Number of validation samples')
     parser.add_argument('--iteration', '-i', type=int, default=300000,
