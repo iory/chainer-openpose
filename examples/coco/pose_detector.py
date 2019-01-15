@@ -5,12 +5,9 @@ from __future__ import division
 
 import cv2
 import math
-import time
-import argparse
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 
-import chainer
 from chainer import cuda
 import chainer.functions as F
 
@@ -380,49 +377,3 @@ class PoseDetector(object):
         poses = self.subsets_to_pose_array(subsets, all_peaks)
         scores = subsets[:, -2]
         return poses, scores
-
-
-def draw_person_pose(orig_img, poses, limbs_point):
-    if len(poses) == 0:
-        return orig_img
-
-    limb_colors = [
-        [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255],
-        [0, 85, 255], [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0.],
-        [255, 0, 85], [170, 255, 0], [85, 255, 0], [170, 0, 255.], [0, 0, 255],
-        [0, 0, 255], [255, 0, 255], [170, 0, 255], [255, 0, 170],
-    ]
-
-    joint_colors = [
-        [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0],
-        [85, 255, 0], [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255],
-        [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], [170, 0, 255],
-        [255, 0, 255], [255, 0, 170], [255, 0, 85]]
-
-    canvas = orig_img.copy()
-
-    # limbs
-    for pose in poses.round().astype('i'):
-        for i, (limb, color) in enumerate(zip(limbs_point, limb_colors)):
-            if i != 9 and i != 13:  # don't show ear-shoulder connection
-                limb_ind = np.array(limb)
-                if np.all(pose[limb_ind][:, 2] != 0):
-                    joint1, joint2 = pose[limb_ind][:, :2]
-                    cv2.line(canvas, tuple(joint1), tuple(joint2), color, 2)
-
-    # joints
-    for pose in poses.round().astype('i'):
-        for i, ((x, y, v), color) in enumerate(zip(pose, joint_colors)):
-            if v != 0:
-                cv2.circle(canvas, (x, y), 3, color, -1)
-    return canvas
-
-
-if __name__ == '__main__':
-    from chainer_openpose.links import OpenPoseNet
-    from chainer_openpose.datasets.coco import coco_utils
-    model = OpenPoseNet(19, 38)
-    pd = PoseDetector(model)
-    img = np.ones((100, 100, 3), 'f')
-    poses, scores = pd(img)
-    draw_person_pose(img, poses, coco_utils.coco_joint_pairs)
