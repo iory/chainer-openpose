@@ -123,6 +123,8 @@ def main():
     @chainer.training.make_extension(trigger=(1, 'iteration'))
     def visualize_model(trainer):
         from pose_detector import PoseDetector
+        import cv2
+        from pose_detector import draw_person_pose
         itr = trainer.updater.get_iterator('main')
         itr.reset()
         batch = itr.next()
@@ -131,8 +133,6 @@ def main():
 
         pd = PoseDetector(
             model,
-            coco_utils.JointType,
-            coco_utils.coco_joint_pairs,
             device=args.gpu)
         try:
             os.makedirs(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration)))
@@ -141,7 +141,7 @@ def main():
         batch_size = imgs.shape[0]
         for i in range(batch_size):
             img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
-            person_pose_array = pd(chainer.cuda.to_cpu(img))
+            person_pose_array, scores = pd(chainer.cuda.to_cpu(img))
             img = draw_person_pose(img, person_pose_array, coco_utils.coco_joint_pairs)
             cv2.imwrite(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration),
                                      'img-{}.png'.format(i)), img)
