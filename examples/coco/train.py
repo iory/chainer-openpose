@@ -1,11 +1,11 @@
 import argparse
-import os
 
 import chainer
 from chainer.datasets import TransformDataset
 from chainer import training
 from chainer.training import extensions
 
+from chainer_openpose.extensions import OpenPoseVisReport
 from chainer_openpose.links import OpenPoseNet
 from chainer_openpose.links import OpenPoseTrainChain
 from chainer_openpose.datasets import COCOPersonKeypointsDataset
@@ -19,7 +19,7 @@ from chainer_openpose.transforms import random_flip
 from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
-from chainer_openpose.utils import makedirs
+from pose_detector import PoseDetector
 
 
 class Transform(object):
@@ -95,12 +95,15 @@ def main():
 
     train_datasets = COCOPersonKeypointsDataset(split='val')
     train = TransformDataset(train_datasets, Transform(mode='train'))
+    val_datasets = COCOPersonKeypointsDataset(split='val')
+    val = TransformDataset(val_datasets, Transform(mode='val'))
 
     if args.loaderjob:
         train_iter = chainer.iterators.MultiprocessIterator(
             train, args.batchsize, n_processes=args.loaderjob)
     else:
         train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
+    val_iter = chainer.iterators.SerialIterator(val, args.batchsize)
 
     updater = training.updaters.StandardUpdater(
         train_iter, optimizer, device=args.gpu)
@@ -133,46 +136,15 @@ def main():
                                          trigger=log_interval),
                    trigger=log_interval)
 
-    @chainer.training.make_extension(trigger=vis_interval)
-    def visualize_model(trainer):
-        from pose_detector import PoseDetector
-        import cv2
-        import numpy as np
-        from chainer_openpose.visualizations import overlay_pose
-        itr = trainer.updater.get_iterator('main')
-        itr.reset()
-        batch = itr.next()
-        imgs, _, _, _ = trainer.updater.converter(
-            batch, trainer.updater.device)
-
-        pd = PoseDetector(
-            model,
-            device=args.gpu)
-        makedirs(os.path.join(result_output_path, 'iteration-{}'.format(trainer.updater.iteration)))
-
-        batch_size = imgs.shape[0]
-        for i in range(batch_size):
-            img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
-            person_pose_array, scores = pd(chainer.cuda.to_cpu(img))
-            img = np.array((img + 0.5) * 255.0, dtype=np.uint8)
-            img = overlay_pose(
-                img,
-                person_pose_array,
-                coco_utils.coco_joint_pairs,
-                coco_utils.coco_skip_joint_pair_indices)
-            cv2.imwrite(os.path.join(result_output_path, 'iteration-{}'.format(trainer.updater.iteration),
-                                     'img-{}.png'.format(i)), img)
-
-    trainer.extend(visualize_model)
-
-    # # Visualization.
-    # trainer.extend(
-    #     extensions.OpenPoseVisReport(
-    #         test_iter,
-    #         model.mask_rcnn,
-    #         label_names=args.class_names,
-    #     ),
-    #     trigger=vis_interval)
+    # Visualization.
+    pose_detector = PoseDetector(model, device=args.gpu)
+    trainer.extend(
+        OpenPoseVisReport(
+            val_iter,
+            pose_detector,
+            coco_utils.coco_joint_pairs,
+            coco_utils.coco_skip_joint_pair_indices),
+        trigger=vis_interval)
 
     if args.resume:
         chainer.serializers.load_npz(args.resume, trainer)
