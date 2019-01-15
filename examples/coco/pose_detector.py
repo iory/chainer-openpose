@@ -156,7 +156,7 @@ class PoseDetector(object):
             all_peaks = all_peaks.get()
         return all_peaks
 
-    def compute_candidate_connections(self, paf, cand_a, cand_b, img_len, params):
+    def compute_candidate_connections(self, paf, cand_a, cand_b, img_len):
         candidate_connections = []
         for joint_a in cand_a:
             for joint_b in cand_b:  # jointは(x, y)座標
@@ -182,7 +182,7 @@ class PoseDetector(object):
         candidate_connections = sorted(candidate_connections, key=lambda x: x[2], reverse=True)
         return candidate_connections
 
-    def compute_connections(self, pafs, all_peaks, img_len, params):
+    def compute_connections(self, pafs, all_peaks, img_len):
         all_connections = []
         for i in range(len(coco_joint_pairs)):
             paf_index = [i*2, i*2 + 1]
@@ -192,7 +192,7 @@ class PoseDetector(object):
             cand_b = all_peaks[all_peaks[:, 0] == limb_point[1]][:, 1:]
 
             if len(cand_a) > 0 and len(cand_b) > 0:
-                candidate_connections = self.compute_candidate_connections(paf, cand_a, cand_b, img_len, params)
+                candidate_connections = self.compute_candidate_connections(paf, cand_a, cand_b, img_len)
                 connections = np.zeros((0, 3))
                 for index_a, index_b, score in candidate_connections:
                     if index_a not in connections[:, 0] and index_b not in connections[:, 1]:
@@ -204,7 +204,7 @@ class PoseDetector(object):
                 all_connections.append(np.zeros((0, 3)))
         return all_connections
 
-    def grouping_key_points(self, all_connections, candidate_peaks, params):
+    def grouping_key_points(self, all_connections, candidate_peaks):
         subsets = -1 * np.ones((0, 20))
 
         for l, connections in enumerate(all_connections):
@@ -288,7 +288,7 @@ class PoseDetector(object):
         person_pose_array = np.array(person_pose_array)
         return person_pose_array
 
-    def detect_precise(self, orig_img, params):
+    def detect_precise(self, orig_img):
         orig_img_h, orig_img_w, _ = orig_img.shape
 
         pafs_sum = 0
@@ -333,8 +333,8 @@ class PoseDetector(object):
         self.all_peaks = self.compute_peaks_from_heatmaps(self.heatmaps)
         if len(self.all_peaks) == 0:
             return np.empty((0, len(JointType), 3)), np.empty(0)
-        all_connections = self.compute_connections(self.pafs, self.all_peaks, orig_img_w, params)
-        subsets = self.grouping_key_points(all_connections, self.all_peaks, params)
+        all_connections = self.compute_connections(self.pafs, self.all_peaks, orig_img_w)
+        subsets = self.grouping_key_points(all_connections, self.all_peaks)
         poses = self.subsets_to_pose_array(subsets, self.all_peaks)
         scores = subsets[:, -2]
         return poses, scores
@@ -346,7 +346,7 @@ class PoseDetector(object):
     def __call__(self, orig_img, params=None):
         orig_img = orig_img.copy()
         if self.precise:
-            return self.detect_precise(orig_img, params)
+            return self.detect_precise(orig_img)
         orig_img_h, orig_img_w, _ = orig_img.shape
 
         input_w, input_h = self.compute_optimal_size(orig_img, self.inference_img_size)
@@ -370,8 +370,8 @@ class PoseDetector(object):
         all_peaks = self.compute_peaks_from_heatmaps(heatmaps)
         if len(all_peaks) == 0:
             return np.empty((0, len(JointType), 3)), np.empty(0)
-        all_connections = self.compute_connections(pafs, all_peaks, map_w, params)
-        subsets = self.grouping_key_points(all_connections, all_peaks, params)
+        all_connections = self.compute_connections(pafs, all_peaks, map_w)
+        subsets = self.grouping_key_points(all_connections, all_peaks)
         all_peaks[:, 1] *= orig_img_w / map_w
         all_peaks[:, 2] *= orig_img_h / map_h
         poses = self.subsets_to_pose_array(subsets, all_peaks)
