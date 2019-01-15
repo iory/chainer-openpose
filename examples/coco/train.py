@@ -93,7 +93,7 @@ def main():
                                         eps=1e-08)
     optimizer.setup(train_chain)
 
-    train_datasets = COCOPersonKeypointsDataset(split='val')
+    train_datasets = COCOPersonKeypointsDataset(split='train')
     train = TransformDataset(train_datasets, Transform(mode='train'))
     val_datasets = COCOPersonKeypointsDataset(split='val')
     val = TransformDataset(val_datasets, Transform(mode='val'))
