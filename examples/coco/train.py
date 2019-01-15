@@ -125,7 +125,7 @@ def main():
         from pose_detector import PoseDetector
         import cv2
         import numpy as np
-        from pose_detector import draw_person_pose
+        from chainer_openpose.visualizations import overlay_pose
         itr = trainer.updater.get_iterator('main')
         itr.reset()
         batch = itr.next()
