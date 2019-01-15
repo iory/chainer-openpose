@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from chainer_openpose.transforms.image.box import get_pose_bboxes
+from chainer_openpose.transforms.box import get_pose_bboxes
 
 
 def random_crop(img, ignore_mask, poses,
