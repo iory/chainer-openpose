@@ -15,7 +15,8 @@ from chainer_openpose.transforms import resize
 from chainer_openpose.transforms import random_resize
 from chainer_openpose.transforms import random_rotate
 from chainer_openpose.transforms import random_crop
-from chainer_openpose.transforms import flip
+from chainer_openpose.transforms import random_flip
+from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
 
@@ -30,18 +31,16 @@ class Transform(object):
         img, poses, ignore_mask = in_data
         if self.mode == 'train':
             img, ignore_mask, poses = random_resize(
-                img, ignore_mask, poses, self.input_size)
+                img, ignore_mask, poses)
             img, ignore_mask, poses = random_rotate(
                 img, ignore_mask, poses)
             img, ignore_mask, poses = random_crop(
                 img, ignore_mask, poses)
             img = distort_color(img)
-            if np.random.uniform() > 0.5:
-                img, ignore_mask, poses = flip(
-                    img, ignore_mask, poses)
-        else:
-            img, ignore_mask, poses = resize(
-                img, ignore_mask, poses, self.input_size)
+            img, ignore_mask, poses = random_flip(
+                img, ignore_mask, poses)
+        img, ignore_mask, poses = resize(
+            img, ignore_mask, poses, self.input_size)
         heatmaps = generate_heatmaps(img, poses)
         pafs = generate_pafs(img, poses, coco_utils.coco_joint_pairs)
         img = (img.astype('f') / 255.0) - 0.5
@@ -124,6 +123,7 @@ def main():
     def visualize_model(trainer):
         from pose_detector import PoseDetector
         import cv2
+        import numpy as np
         from pose_detector import draw_person_pose
         itr = trainer.updater.get_iterator('main')
         itr.reset()
@@ -142,6 +142,7 @@ def main():
         for i in range(batch_size):
             img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
             person_pose_array, scores = pd(chainer.cuda.to_cpu(img))
+            img = np.array((img + 0.5) * 255.0, dtype=np.uint8)
             img = draw_person_pose(img, person_pose_array, coco_utils.coco_joint_pairs)
             cv2.imwrite(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration),
                                      'img-{}.png'.format(i)), img)
