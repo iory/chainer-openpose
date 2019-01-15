@@ -10,7 +10,11 @@ from chainer_openpose.links import OpenPoseTrainChain
 from chainer_openpose.datasets import COCOPersonKeypointsDataset
 from chainer_openpose.transforms.heatmap import generate_heatmaps
 from chainer_openpose.transforms.paf import generate_pafs
-from chainer_openpose.transforms.resize import resize
+from chainer_openpose.transforms import resize
+from chainer_openpose.transforms import random_resize
+from chainer_openpose.transforms import random_rotate
+from chainer_openpose.transforms import random_crop
+from chainer_openpose.transforms import flip
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
 
@@ -23,8 +27,20 @@ class Transform(object):
 
     def __call__(self, in_data):
         img, poses, ignore_mask = in_data
-        img, ignore_mask, poses = resize(
-            img, ignore_mask, poses, self.input_size)
+        if self.mode == 'train':
+            img, ignore_mask, poses = random_resize(
+                img, ignore_mask, poses, self.input_size)
+            img, ignore_mask, poses = random_rotate(
+                img, ignore_mask, poses)
+            img, ignore_mask, poses = random_crop(
+                img, ignore_mask, poses)
+            img = distort_color(img)
+            if np.random.uniform() > 0.5:
+                img, ignore_mask, poses = flip(
+                    img, ignore_mask, poses)
+        else:
+            img, ignore_mask, poses = resize(
+                img, ignore_mask, poses, self.input_size)
         heatmaps = generate_heatmaps(img, poses)
         pafs = generate_pafs(img, poses, coco_utils.coco_joint_pairs)
         img = (img.astype('f') / 255.0) - 0.5
