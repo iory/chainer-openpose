@@ -8,6 +8,7 @@ import math
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 
+import chainer
 from chainer import cuda
 import chainer.functions as F
 
@@ -343,13 +344,35 @@ class PoseDetector(object):
         x = x.transpose(2, 0, 1)
         return x[None, ]
 
-    def __call__(self, orig_img, params=None):
+    def predict(self, imgs):
+        """Detect poses from images.
+
+        This method predicts objects for each image.
+
+        Args:
+            imgs (iterable of numpy.ndarray): Arrays holding images.
+                All images are in HWC and BGR format
+                and the range of their value is :math:`[0, 255]`.
+
+        """
+        pose = []
+        score = []
+        with chainer.using_config('train', False), \
+                chainer.function.no_backprop_mode():
+            for img in imgs:
+                poses, scores = self(img)
+                pose.append(poses)
+                score.append(scores)
+        return pose, score
+
+    def __call__(self, orig_img):
         orig_img = orig_img.copy()
         if self.precise:
             return self.detect_precise(orig_img)
         orig_img_h, orig_img_w, _ = orig_img.shape
 
-        input_w, input_h = self.compute_optimal_size(orig_img, self.inference_img_size)
+        input_w, input_h = self.compute_optimal_size(
+            orig_img, self.inference_img_size)
         map_w, map_h = self.compute_optimal_size(orig_img, self.heatmap_size)
 
         resized_image = cv2.resize(orig_img, (input_w, input_h))
