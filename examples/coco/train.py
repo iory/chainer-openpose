@@ -55,7 +55,9 @@ def main():
                         help='Training minibatch size')
     parser.add_argument('--valbatchsize', '-b', type=int, default=4,
                         help='Validation minibatch size')
+    parser.add_argument('--log-interval', type=int, default=20)
     parser.add_argument('--vis-interval', type=int, default=20)
+    parser.add_argument('--val-interval', type=int, default=1000)
     parser.add_argument('--val-samples', type=int, default=100,
                         help='Number of validation samples')
     parser.add_argument('--iteration', '-i', type=int, default=300000,
@@ -106,8 +108,8 @@ def main():
                                (args.iteration, 'iteration'),
                                result_output_path)
 
-    val_interval = (10 if args.test else 1000), 'iteration'
-    log_interval = (1 if args.test else 20), 'iteration'
+    val_interval = (args.val_interval, 'iteration')
+    log_interval = (args.log_interval, 'iteration')
     vis_interval = (args.vis_interval, 'iteration')
 
     trainer.extend(extensions.dump_graph('main/loss'))
