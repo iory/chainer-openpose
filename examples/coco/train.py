@@ -51,7 +51,7 @@ class GradientScaling(object):
 
     def __call__(self, opt):
         for layer_name in self.layer_names:
-            for param in opt.target[layer_name].params(False):
+            for param in opt.target.model[layer_name].params(False):
                 grad = param.grad
                 with chainer.cuda.get_device_from_array(grad):
                     grad *= self.scale
