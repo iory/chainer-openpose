@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import chainer
 from chainer.datasets import TransformDataset
@@ -118,6 +119,35 @@ def main():
         'main/heatmap', 'val/heatmap',
     ]), trigger=log_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1))
+
+    @chainer.training.make_extension(trigger=(1, 'iteration'))
+    def visualize_model(trainer):
+        from pose_detector import PoseDetector
+        itr = trainer.updater.get_iterator('main')
+        itr.reset()
+        batch = itr.next()
+        imgs, _, _, _ = trainer.updater.converter(
+            batch, trainer.updater.device)
+
+        pd = PoseDetector(
+            model,
+            coco_utils.JointType,
+            coco_utils.coco_joint_pairs,
+            device=args.gpu)
+        try:
+            os.makedirs(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration)))
+        except:
+            pass
+        batch_size = imgs.shape[0]
+        for i in range(batch_size):
+            img = chainer.cuda.to_cpu(imgs[i]).transpose(1, 2, 0)
+            person_pose_array = pd(chainer.cuda.to_cpu(img))
+            img = draw_person_pose(img, person_pose_array, coco_utils.coco_joint_pairs)
+            cv2.imwrite(os.path.join(args.out, 'iteration-{}'.format(trainer.updater.iteration),
+                                     'img-{}.png'.format(i)), img)
+
+    trainer.extend(visualize_model)
+
 
     if args.resume:
         chainer.serializers.load_npz(args.resume, trainer)
