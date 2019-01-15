@@ -20,6 +20,26 @@ from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.coco import coco_utils
 from chainer_openpose.utils import prepare_output_dir
 from pose_detector import PoseDetector
+from chainercv.links.model.ssd import GradientScaling
+
+
+def copy_vgg_params(model):
+    from chainer.links import caffe
+
+    from chainer_openpose.datasets.coco.coco_utils import \
+        get_vgg_pretrained_model
+
+    print('Copying params of pretrained model...')
+    layer_names = [
+        "conv1_1", "conv1_2", "conv2_1", "conv2_2", "conv3_1",
+        "conv3_2", "conv3_3", "conv3_4", "conv4_1", "conv4_2",
+    ]
+
+    pre_model = caffe.CaffeFunction(get_vgg_pretrained_model())
+    for layer_name in layer_names:
+        getattr(model, layer_name).W.data = pre_model[layer_name].W.data
+        getattr(model, layer_name).b.data = pre_model[layer_name].b.data
+    print('Done.')
 
 
 class Transform(object):
@@ -80,6 +100,7 @@ def main():
 
     model = OpenPoseNet(len(coco_utils.JointType) + 1,
                         len(coco_utils.coco_joint_pairs) * 2)
+    copy_vgg_params(model)
     train_chain = OpenPoseTrainChain(model)
 
     if args.gpu >= 0:
