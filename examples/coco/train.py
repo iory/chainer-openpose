@@ -123,6 +123,14 @@ def main():
     ]), trigger=log_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1))
 
+    # log plotter
+    trainer.extend(extensions.PlotReport([
+        'main/loss', 'val/loss',
+        'main/paf', 'val/paf',
+        'main/heatmap', 'val/heatmap'], file_name='loss.png',
+                                         trigger=log_interval),
+                   trigger=log_interval)
+
     @chainer.training.make_extension(trigger=vis_interval)
     def visualize_model(trainer):
         from pose_detector import PoseDetector
