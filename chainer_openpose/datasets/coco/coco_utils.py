@@ -58,6 +58,14 @@ def get_coco(split, year, mode='person_keypoints'):
     return data_dir
 
 
+def get_vgg_pretrained_model():
+    data_dir = download.get_dataset_directory(root)
+    vgg_url = 'http://www.robots.ox.ac.uk/%7Evgg/software/'\
+        'very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel'
+    download_file_path = utils.cached_download(vgg_url)
+    return download_file_path
+
+
 class JointType(IntEnum):
     Nose = 0
     Neck = 1
