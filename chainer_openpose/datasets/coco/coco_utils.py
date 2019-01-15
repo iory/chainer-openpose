@@ -117,3 +117,7 @@ coco_joint_pairs = ((JointType.Neck, JointType.RightWaist),
                     (JointType.Nose, JointType.LeftEye),
                     (JointType.RightEye, JointType.RightEar),
                     (JointType.LeftEye, JointType.LeftEar))
+
+
+# don't show ear-shoulder connection
+coco_skip_joint_pair_indices = (9, 13)
