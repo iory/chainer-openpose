@@ -100,7 +100,8 @@ def main():
     people_model = OpenPoseNet(
         len(coco_utils.JointType) + 1,
         len(coco_utils.coco_joint_pairs) * 2)
-    chainer.serializers.load_npz('./coco_posenet.npz', people_model)
+    chainer.serializers.load_npz(
+        coco_utils.get_coco_pretrained_model(), people_model)
 
     layer_names = ['Mconv2_stage2_L1', 'Mconv2_stage2_L2', 'Mconv2_stage3_L1', 'Mconv2_stage3_L2', 'Mconv2_stage4_L1', 'Mconv2_stage4_L2', 'Mconv2_stage5_L1', 'Mconv2_stage5_L2', 'Mconv2_stage6_L1', 'Mconv2_stage6_L2', 'Mconv3_stage2_L1', 'Mconv3_stage2_L2', 'Mconv3_stage3_L1', 'Mconv3_stage3_L2', 'Mconv3_stage4_L1', 'Mconv3_stage4_L2', 'Mconv3_stage5_L1', 'Mconv3_stage5_L2', 'Mconv3_stage6_L1', 'Mconv3_stage6_L2', 'Mconv4_stage2_L1', 'Mconv4_stage2_L2', 'Mconv4_stage3_L1', 'Mconv4_stage3_L2', 'Mconv4_stage4_L1', 'Mconv4_stage4_L2', 'Mconv4_stage5_L1', 'Mconv4_stage5_L2', 'Mconv4_stage6_L1', 'Mconv4_stage6_L2', 'Mconv5_stage2_L1', 'Mconv5_stage2_L2', 'Mconv5_stage3_L1',
                    'Mconv5_stage3_L2', 'Mconv5_stage4_L1', 'Mconv5_stage4_L2', 'Mconv5_stage5_L1', 'Mconv5_stage5_L2', 'Mconv5_stage6_L1', 'Mconv5_stage6_L2', 'Mconv6_stage2_L1', 'Mconv6_stage2_L2', 'Mconv6_stage3_L1', 'Mconv6_stage3_L2', 'Mconv6_stage4_L1', 'Mconv6_stage4_L2', 'Mconv6_stage5_L1', 'Mconv6_stage5_L2', 'Mconv6_stage6_L1', 'Mconv6_stage6_L2', 'conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2', 'conv4_3_CPM', 'conv4_4_CPM', 'conv5_1_CPM_L1', 'conv5_1_CPM_L2', 'conv5_2_CPM_L1', 'conv5_2_CPM_L2', 'conv5_3_CPM_L1', 'conv5_3_CPM_L2', 'conv5_4_CPM_L1', 'conv5_4_CPM_L2',]
