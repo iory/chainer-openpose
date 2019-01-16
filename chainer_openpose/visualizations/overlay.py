@@ -83,3 +83,23 @@ def overlay_pose(img, poses, joint_index_pairs,
             if v != 0:
                 cv2.circle(canvas, (x, y), 3, color, -1)
     return canvas
+
+
+def overlay_keypoints(img, keypoints,
+                      radius=3, color=(0, 0, 255)):
+    """
+
+    keypoints :
+        (n, number_of_point in instance, 3)
+
+    """
+    img = img.copy()
+    for kp in keypoints:
+        for x, y, _ in kp:
+            cv2.circle(
+                img,
+                (int(x), int(y)),
+                radius,
+                color,
+                -1)
+    return img
