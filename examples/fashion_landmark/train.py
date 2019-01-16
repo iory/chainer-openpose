@@ -31,16 +31,24 @@ class Transform(object):
 
     def __call__(self, in_data):
         img, poses, ignore_mask = in_data
+        org_img = img.copy()
+        org_poses = poses.copy()
+        org_ignore_mask = ignore_mask.copy()
         if self.mode == 'train':
             box = get_pose_bboxes(poses)[0]
             if abs(box[2] - box[0]) * abs(box[3] - box[1]) > 0.0:
-                img, ignore_mask, poses = random_resize(
-                    img, ignore_mask, poses)
-                img, ignore_mask, poses = random_rotate(
-                    img, ignore_mask, poses)
-                img, ignore_mask, poses = random_crop(
-                    img, ignore_mask, poses)
-                img = distort_color(img)
+                try:
+                    img, ignore_mask, poses = random_resize(
+                        img, ignore_mask, poses)
+                    img, ignore_mask, poses = random_rotate(
+                        img, ignore_mask, poses)
+                    img, ignore_mask, poses = random_crop(
+                        img, ignore_mask, poses)
+                    img = distort_color(img)
+                except:
+                    img = org_img
+                    poses = org_poses
+                    ignore_mask = org_ignore_mask
             # img, ignore_mask, poses = random_flip(
             #     img, ignore_mask, poses)
         img, ignore_mask, poses = resize(
