@@ -9,8 +9,10 @@ from chainer_openpose.datasets.fashion_landmark import fashion_landmark_utils
 
 class FashionLandmarkKeypointsDataset(DatasetMixin):
 
-    def __init__(self, split='train', cloth_type=1):
+    def __init__(self, split='train', cloth_type=1,
+                 min_keypoints=5):
         super(FashionLandmarkKeypointsDataset, self).__init__()
+        self.min_keypoints = min_keypoints
         self.split = split
         if cloth_type != 1:
             raise ValueError()
@@ -55,9 +57,7 @@ class FashionLandmarkKeypointsDataset(DatasetMixin):
                 cloth_type = int(split[1])
                 if cloth_type != self.cloth_type:
                     continue
-                image_names.append(split[0])
-                clothes_types.append(cloth_type)
-                variation_types.append(int(split[2]))
+
                 if cloth_type == 1:  # upper body
                     if int(len(split[3:]) / 3) != 6:
                         raise ValueError
@@ -83,6 +83,11 @@ class FashionLandmarkKeypointsDataset(DatasetMixin):
                         [split[point_index + 1],
                          split[point_index + 2],
                          visible], 'f')
+                if np.sum(keypoint[0, :, 2] > 0.0) < self.min_keypoints:
+                    continue
+                image_names.append(split[0])
+                clothes_types.append(cloth_type)
+                variation_types.append(int(split[2]))
                 keypoints.append(keypoint)
         self.image_names = image_names
         self.keypoints = keypoints
