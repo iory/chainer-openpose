@@ -9,7 +9,8 @@ install_requires = [
     'chainer>=5.1.0',
     'chainercv',
     'pycocotools',
-    'fcn'
+    'fcn',
+    'gdown'
 ]
 
 setup(
