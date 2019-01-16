@@ -1,6 +1,7 @@
 import chainer
 import chainer.functions as F
 import chainer.links as L
+from chainer import static_graph
 
 
 class OpenPoseNet(chainer.Chain):
@@ -206,6 +207,7 @@ class OpenPoseNet(chainer.Chain):
             self.Mconv7_stage6_L2 = L.Convolution2D(
                 in_channels=128, out_channels=out_channels, ksize=1, stride=1, pad=0)
 
+    @static_graph
     def __call__(self, x):
         heatmaps = []
         pafs = []
