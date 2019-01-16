@@ -106,7 +106,7 @@ def main():
                    'Mconv5_stage3_L2', 'Mconv5_stage4_L1', 'Mconv5_stage4_L2', 'Mconv5_stage5_L1', 'Mconv5_stage5_L2', 'Mconv5_stage6_L1', 'Mconv5_stage6_L2', 'Mconv6_stage2_L1', 'Mconv6_stage2_L2', 'Mconv6_stage3_L1', 'Mconv6_stage3_L2', 'Mconv6_stage4_L1', 'Mconv6_stage4_L2', 'Mconv6_stage5_L1', 'Mconv6_stage5_L2', 'Mconv6_stage6_L1', 'Mconv6_stage6_L2', 'conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2', 'conv4_3_CPM', 'conv4_4_CPM', 'conv5_1_CPM_L1', 'conv5_1_CPM_L2', 'conv5_2_CPM_L1', 'conv5_2_CPM_L2', 'conv5_3_CPM_L1', 'conv5_3_CPM_L2', 'conv5_4_CPM_L1', 'conv5_4_CPM_L2',]
     for layer_name in layer_names:
         model[layer_name].copyparams(people_model[layer_name])
-        model[layer_name].disable_update()
+        # model[layer_name].disable_update()
 
     if args.initmodel:
         print('Load model from {}'.format(args.initmodel))
