@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup_requires = []
 install_requires = [
-    'chainer>=5.0.0',
+    'chainer>=5.1.0',
     'chainercv',
     'pycocotools',
     'fcn'
