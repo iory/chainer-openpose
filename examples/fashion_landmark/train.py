@@ -16,6 +16,7 @@ from chainer_openpose.transforms import random_resize
 from chainer_openpose.transforms import random_rotate
 from chainer_openpose.transforms import random_crop
 from chainer_openpose.transforms import random_flip
+from chainer_openpose.transforms.box import get_pose_bboxes
 from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.fashion_landmark import fashion_landmark_utils
 from chainer_openpose.utils import prepare_output_dir
@@ -31,7 +32,8 @@ class Transform(object):
     def __call__(self, in_data):
         img, poses, ignore_mask = in_data
         if self.mode == 'train':
-            try:
+            box = get_pose_bboxes(poses)[0]
+            if abs(box[2] - box[0]) * abs(box[3] - box[1]) > 0.0:
                 img, ignore_mask, poses = random_resize(
                     img, ignore_mask, poses)
                 img, ignore_mask, poses = random_rotate(
@@ -39,9 +41,6 @@ class Transform(object):
                 img, ignore_mask, poses = random_crop(
                     img, ignore_mask, poses)
                 img = distort_color(img)
-            except:
-                import ipdb
-                ipdb.set_trace()
             # img, ignore_mask, poses = random_flip(
             #     img, ignore_mask, poses)
         img, ignore_mask, poses = resize(
