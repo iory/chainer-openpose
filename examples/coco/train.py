@@ -190,7 +190,10 @@ def main():
                    trigger=log_interval)
 
     # Visualization.
-    pose_detector = PoseDetector(model, device=args.gpu)
+    pose_detector = PoseDetector(model,
+                                 coco_utils.JointType,
+                                 coco_utils.coco_joint_pairs,
+                                 device=args.gpu)
     trainer.extend(
         OpenPoseVisReport(
             val_iter,

@@ -12,14 +12,13 @@ import chainer
 from chainer import cuda
 import chainer.functions as F
 
-from chainer_openpose.datasets.coco.coco_utils import JointType
-from chainer_openpose.datasets.coco.coco_utils import coco_joint_pairs
-
 
 class PoseDetector(object):
 
     def __init__(self,
                  model,
+                 joint_type,
+                 joint_pairs,
                  device=-1,
                  precise=False,
                  ksize=17,
@@ -37,6 +36,8 @@ class PoseDetector(object):
                  inner_product_thresh=0.05):
         self.precise = precise
         self.model = model
+        self.joint_type = joint_type
+        self.joint_pairs = joint_pairs
 
         self.device = device
         self.ksize = ksize
@@ -185,10 +186,10 @@ class PoseDetector(object):
 
     def compute_connections(self, pafs, all_peaks, img_len):
         all_connections = []
-        for i in range(len(coco_joint_pairs)):
+        for i in range(len(self.joint_pairs)):
             paf_index = [i*2, i*2 + 1]
             paf = pafs[paf_index]
-            limb_point = coco_joint_pairs[i]
+            limb_point = self.joint_pairs[i]
             cand_a = all_peaks[all_peaks[:, 0] == limb_point[0]][:, 1:]
             cand_b = all_peaks[all_peaks[:, 0] == limb_point[1]][:, 1:]
 
@@ -209,7 +210,7 @@ class PoseDetector(object):
         subsets = -1 * np.ones((0, 20))
 
         for l, connections in enumerate(all_connections):
-            joint_a, joint_b = coco_joint_pairs[l]
+            joint_a, joint_b = self.joint_pairs[l]
 
             for ind_a, ind_b, score in connections[:, :3]:
                 ind_a, ind_b = int(ind_a), int(ind_b)
@@ -333,7 +334,7 @@ class PoseDetector(object):
 
         self.all_peaks = self.compute_peaks_from_heatmaps(self.heatmaps)
         if len(self.all_peaks) == 0:
-            return np.empty((0, len(JointType), 3)), np.empty(0)
+            return np.empty((0, len(self.joint_type), 3)), np.empty(0)
         all_connections = self.compute_connections(self.pafs, self.all_peaks, orig_img_w)
         subsets = self.grouping_key_points(all_connections, self.all_peaks)
         poses = self.subsets_to_pose_array(subsets, self.all_peaks)
@@ -392,7 +393,7 @@ class PoseDetector(object):
 
         all_peaks = self.compute_peaks_from_heatmaps(heatmaps)
         if len(all_peaks) == 0:
-            return np.empty((0, len(JointType), 3)), np.empty(0)
+            return np.empty((0, len(self.joint_type), 3)), np.empty(0)
         all_connections = self.compute_connections(pafs, all_peaks, map_w)
         subsets = self.grouping_key_points(all_connections, all_peaks)
         all_peaks[:, 1] *= orig_img_w / map_w
