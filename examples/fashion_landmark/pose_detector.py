@@ -334,12 +334,12 @@ class PoseDetector(object):
 
         self.all_peaks = self.compute_peaks_from_heatmaps(self.heatmaps)
         if len(self.all_peaks) == 0:
-            return np.empty((0, len(self.joint_type), 3)), np.empty(0)
+            return np.empty((0, len(self.joint_type), 3)), np.empty(0), None
         all_connections = self.compute_connections(self.pafs, self.all_peaks, orig_img_w)
         subsets = self.grouping_key_points(all_connections, self.all_peaks)
         poses = self.subsets_to_pose_array(subsets, self.all_peaks)
         scores = subsets[:, -2]
-        return poses, scores
+        return poses, scores, self.all_peaks
 
     def preprocess(self, x):
         x = x.transpose(2, 0, 1)
@@ -393,11 +393,11 @@ class PoseDetector(object):
 
         all_peaks = self.compute_peaks_from_heatmaps(heatmaps)
         if len(all_peaks) == 0:
-            return np.empty((0, len(self.joint_type), 3)), np.empty(0)
+            return np.empty((0, len(self.joint_type), 3)), np.empty(0), None
         all_connections = self.compute_connections(pafs, all_peaks, map_w)
         subsets = self.grouping_key_points(all_connections, all_peaks)
         all_peaks[:, 1] *= orig_img_w / map_w
         all_peaks[:, 2] *= orig_img_h / map_h
         poses = self.subsets_to_pose_array(subsets, all_peaks)
         scores = subsets[:, -2]
-        return poses, scores
+        return poses, scores, all_peaks
