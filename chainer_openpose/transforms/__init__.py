@@ -1,4 +1,6 @@
 from chainer_openpose.transforms.distort_color import distort_color  # NOQA
+from chainer_openpose.transforms.domain_randomize import domain_randomize_background  # NOQA
+from chainer_openpose.transforms.domain_randomize import random_domain_randomize_background  # NOQA
 from chainer_openpose.transforms.flip import flip  # NOQA
 from chainer_openpose.transforms.random_crop import random_crop  # NOQA
 from chainer_openpose.transforms.random_flip import random_flip  # NOQA
