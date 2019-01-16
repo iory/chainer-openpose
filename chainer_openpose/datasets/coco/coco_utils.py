@@ -59,7 +59,6 @@ def get_coco(split, year, mode='person_keypoints'):
 
 
 def get_vgg_pretrained_model():
-    data_dir = download.get_dataset_directory(root)
     vgg_url = 'http://www.robots.ox.ac.uk/%7Evgg/software/'\
         'very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel'
     download_file_path = utils.cached_download(vgg_url)
