@@ -97,6 +97,8 @@ def main():
                         help='Number of validation samples')
     parser.add_argument('--iteration', '-i', type=int, default=300000,
                         help='Number of iterations to train')
+    parser.add_argument('--initmodel',
+                        help='Initialize the model from given file')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID (negative value indicates CPU')
     parser.add_argument('--loaderjob', '-j', type=int,
@@ -115,7 +117,12 @@ def main():
 
     model = OpenPoseNet(len(coco_utils.JointType) + 1,
                         len(coco_utils.coco_joint_pairs) * 2)
-    copy_vgg_params(model)
+
+    if args.initmodel:
+        print('Load model from {}'.format(args.initmodel))
+        chainer.serializers.load_npz(args.initmodel, model)
+    else:
+        copy_vgg_params(model)
     train_chain = OpenPoseTrainChain(model)
 
     if args.gpu >= 0:
