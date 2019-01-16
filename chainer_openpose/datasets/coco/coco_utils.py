@@ -1,9 +1,13 @@
 import os
-import shutil
 from enum import IntEnum
 
+import chainer
 from chainer.dataset import download
+from chainer.links import caffe
 from chainercv import utils
+
+from chainer_openpose.links import OpenPoseNet
+from chainer_openpose.utils import makedirs
 
 
 root = 'iory/openpose/coco'
@@ -56,6 +60,57 @@ def get_coco(split, year, mode='person_keypoints'):
         elif split in ['valminusminival', 'minival']:
             utils.extractall(download_file_path, annos_root, ext)
     return data_dir
+
+
+def get_coco_pretrained_model():
+    data_dir = download.get_dataset_directory(root)
+    pretraind_model_dir = os.path.join(data_dir, 'model')
+    makedirs(pretraind_model_dir)
+    pretrained_model_filename = os.path.join(
+        pretraind_model_dir, 'coco_posenet.npz')
+    pretrained_model_url = 'http://posefs1.perception.cs.cmu.edu/OpenPose/'\
+        'models/pose/coco/pose_iter_440000.caffemodel'
+    download_file_path = utils.cached_download(pretrained_model_url)
+    if os.path.exists(pretrained_model_filename):
+        return pretrained_model_filename
+    model = OpenPoseNet(len(JointType) + 1, len(coco_joint_pairs) * 2)
+    caffe_model = caffe.CaffeFunction(download_file_path)
+
+    layer_names = [
+        "conv1_1", "conv1_2", "conv2_1", "conv2_2", "conv3_1", "conv3_2",
+        "conv3_3", "conv3_4", "conv4_1", "conv4_2", "conv4_3_CPM",
+        "conv4_4_CPM", "conv5_1_CPM_L1", "conv5_2_CPM_L1", "conv5_3_CPM_L1",
+        "conv5_4_CPM_L1", "conv5_1_CPM_L2", "conv5_2_CPM_L2", "conv5_3_CPM_L2",
+        "conv5_4_CPM_L2", "conv5_5_CPM_L2", "Mconv1_stage2_L1",
+        "Mconv2_stage2_L1", "Mconv3_stage2_L1", "Mconv4_stage2_L1",
+        "Mconv5_stage2_L1", "Mconv6_stage2_L1", "Mconv7_stage2_L1",
+        "Mconv1_stage2_L2", "Mconv2_stage2_L2", "Mconv3_stage2_L2",
+        "Mconv4_stage2_L2", "Mconv5_stage2_L2", "Mconv6_stage2_L2",
+        "Mconv7_stage2_L2", "Mconv1_stage3_L1", "Mconv2_stage3_L1",
+        "Mconv3_stage3_L1", "Mconv4_stage3_L1", "Mconv5_stage3_L1",
+        "Mconv6_stage3_L1", "Mconv7_stage3_L1", "Mconv1_stage3_L2",
+        "Mconv2_stage3_L2", "Mconv3_stage3_L2", "Mconv4_stage3_L2",
+        "Mconv5_stage3_L2", "Mconv6_stage3_L2", "Mconv7_stage3_L2",
+        "Mconv1_stage4_L1", "Mconv2_stage4_L1", "Mconv3_stage4_L1",
+        "Mconv4_stage4_L1", "Mconv5_stage4_L1", "Mconv6_stage4_L1",
+        "Mconv7_stage4_L1", "Mconv1_stage4_L2", "Mconv2_stage4_L2",
+        "Mconv3_stage4_L2", "Mconv4_stage4_L2", "Mconv5_stage4_L2",
+        "Mconv6_stage4_L2", "Mconv7_stage4_L2", "Mconv1_stage5_L1",
+        "Mconv2_stage5_L1", "Mconv3_stage5_L1", "Mconv4_stage5_L1",
+        "Mconv5_stage5_L1", "Mconv6_stage5_L1", "Mconv7_stage5_L1",
+        "Mconv1_stage5_L2", "Mconv2_stage5_L2", "Mconv3_stage5_L2",
+        "Mconv4_stage5_L2", "Mconv5_stage5_L2", "Mconv6_stage5_L2",
+        "Mconv7_stage5_L2", "Mconv1_stage6_L1", "Mconv2_stage6_L1",
+        "Mconv3_stage6_L1", "Mconv4_stage6_L1", "Mconv5_stage6_L1",
+        "Mconv6_stage6_L1", "Mconv7_stage6_L1", "Mconv1_stage6_L2",
+        "Mconv2_stage6_L2", "Mconv3_stage6_L2", "Mconv4_stage6_L2",
+        "Mconv5_stage6_L2", "Mconv6_stage6_L2", "Mconv7_stage6_L2"]
+
+    # copy layer params
+    for layer_name in layer_names:
+        model[layer_name].copyparams(caffe_model[layer_name])
+    chainer.serializers.save_npz(pretrained_model_filename, model)
+    return pretrained_model_filename
 
 
 def get_vgg_pretrained_model():
