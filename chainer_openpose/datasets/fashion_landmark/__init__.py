@@ -1,0 +1,1 @@
+from chainer_openpose.datasets.fashion_landmark.fashion_landmark_keypoints_dataset import FashionLandmarkKeypointsDataset  # NOQA

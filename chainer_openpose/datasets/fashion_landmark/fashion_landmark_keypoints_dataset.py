@@ -1,6 +1,7 @@
 import os.path as osp
 
 import numpy as np
+import cv2
 from chainer.dataset import DatasetMixin
 
 from chainer_openpose.datasets.fashion_landmark import fashion_landmark_utils
@@ -94,12 +95,11 @@ class FashionLandmarkKeypointsDataset(DatasetMixin):
         img_filename = osp.join(self.data_dir, self.image_names[i])
         img = cv2.imread(img_filename)
         keypoints = self.keypoints[i]
-        return img, keypoints
+        ignore_mask = np.zeros((img.shape[0], img.shape[1]), 'f')
+        return img, keypoints, ignore_mask
 
 
 if __name__ == '__main__':
-    import cv2
-
     from chainer_openpose.visualizations import overlay_pafs
     from chainer_openpose.visualizations import overlay_heatmaps
     from chainer_openpose.visualizations import overlay_keypoints
@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     index = 0
     while index < len(dataset):
-        img, keypoints = dataset[index]
+        img, keypoints, _ = dataset[index]
         heatmaps = generate_heatmaps(img, keypoints, sigma=10)
         pafs = generate_pafs(
             img, keypoints, utils.upper_cloth_joint_pairs, sigma=1)
