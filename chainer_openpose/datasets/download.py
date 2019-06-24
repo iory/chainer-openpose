@@ -1,9 +1,9 @@
-import filelock
 import hashlib
 import os
 import shutil
 import tempfile
 
+import filelock
 from chainer.dataset import download
 import gdown
 
