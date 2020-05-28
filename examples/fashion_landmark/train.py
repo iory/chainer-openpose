@@ -4,6 +4,7 @@ import chainer
 from chainer.datasets import TransformDataset
 from chainer import training
 from chainer.training import extensions
+from eos import make_fancy_output_dir
 
 from chainer_openpose.extensions import OpenPoseVisReport
 from chainer_openpose.links import OpenPoseNet
@@ -19,7 +20,6 @@ from chainer_openpose.transforms import random_flip
 from chainer_openpose.transforms.box import get_pose_bboxes
 from chainer_openpose.transforms import distort_color
 from chainer_openpose.datasets.fashion_landmark import fashion_landmark_utils
-from chainer_openpose.utils import prepare_output_dir
 from pose_detector import PoseDetector
 
 
@@ -90,7 +90,7 @@ def main():
     parser.add_argument('--augment', action='store_true')
     parser.set_defaults(test=False)
     args = parser.parse_args()
-    result_output_path = prepare_output_dir(args, args.out)
+    result_output_path = make_fancy_output_dir(args.out, args=args)
     print("output file: {}".format(result_output_path))
 
     model = OpenPoseNet(

@@ -8,9 +8,9 @@ import fcn
 import six
 import numpy as np
 import matplotlib
+from eos import makedirs
 
 from chainer_openpose.visualizations import overlay_pose
-from chainer_openpose.utils import makedirs
 
 
 class OpenPoseVisReport(chainer.training.extensions.Evaluator):

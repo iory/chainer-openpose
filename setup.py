@@ -8,10 +8,11 @@ setup_requires = []
 install_requires = [
     'chainer>=5.1.0',
     'chainercv',
-    'pycocotools',
+    'extendedos',
     'fcn',
     'gdown',
-    'matplotlib'
+    'matplotlib',
+    'pycocotools',
 ]
 
 setup(

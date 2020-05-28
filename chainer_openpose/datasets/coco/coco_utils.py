@@ -5,9 +5,9 @@ import chainer
 from chainer.dataset import download
 from chainer.links import caffe
 from chainercv import utils
+from eos import makedirs
 
 from chainer_openpose.links import OpenPoseNet
-from chainer_openpose.utils import makedirs
 
 
 root = 'iory/openpose/coco'
