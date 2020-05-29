@@ -85,6 +85,9 @@ def main():
                         help='Initialize the trainer from given file')
     parser.add_argument('--out', '-o', default='result',
                         help='Output directory')
+    parser.add_argument('--optimizer', type=str, default='adabound',
+                        choices=['adabound', 'adam'],
+                        help='Optimizer')
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--domain-randomization', action='store_true')
     parser.add_argument('--augment', action='store_true')
@@ -119,10 +122,16 @@ def main():
         model.to_gpu()
         train_chain.to_gpu()
 
-    optimizer = chainer.optimizers.Adam(alpha=1e-4,
-                                        beta1=0.9,
-                                        beta2=0.999,
-                                        eps=1e-08)
+    if args.optimizer == 'adam':
+        optimizer = chainer.optimizers.Adam(alpha=1e-4,
+                                            beta1=0.9,
+                                            beta2=0.999,
+                                            eps=1e-08)
+    elif args.optimizer == 'adabound':
+        optimizer = chainer.optimizers.AdaBound(alpha=1e-4,
+                                                beta1=0.9,
+                                                beta2=0.999,
+                                                eps=1e-08)
     optimizer.setup(train_chain)
 
     train_datasets = FashionLandmarkKeypointsDataset(split='train')
