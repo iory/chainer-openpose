@@ -10,3 +10,5 @@ from chainer_openpose import extensions  # NOQA
 from chainer_openpose import links  # NOQA
 from chainer_openpose import transforms  # NOQA
 from chainer_openpose import visualizations  # NOQA
+
+from chainer_openpose.pose_detector import PoseDetector  # NOQA
