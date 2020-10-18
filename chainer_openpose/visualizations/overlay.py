@@ -48,7 +48,9 @@ def overlay_pafs(img, pafs):
 
 
 def overlay_pose(img, poses, joint_index_pairs,
-                 skip_connection_indices=[]):
+                 skip_connection_indices=None):
+    if skip_connection_indices is None:
+        skip_connection_indices = []
     if len(poses) == 0:
         return img
 
