@@ -87,6 +87,8 @@ class OpenPoseVisReport(chainer.training.extensions.Evaluator):
                 pred_viz = overlay_pose(img, pose[:, :, :3],
                                         self.joint_index_pairs,
                                         self.skip_connection_indices)
+            else:
+                pred_viz = img.copy()
             vizs.append(pred_viz[:, :, ::-1])
             if len(vizs) >= (self._shape[0] * self._shape[1]):
                 break
