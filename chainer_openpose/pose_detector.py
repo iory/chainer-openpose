@@ -34,11 +34,13 @@ class PoseDetector(object):
                  n_integ_points_thresh=8,
                  length_penalty_ratio=0.5,
                  length_penalty_value=1.0,
-                 inner_product_thresh=0.05):
+                 inner_product_thresh=0.05,
+                 downscale=8):
         self.precise = precise
         self.model = model
         self.joint_type = joint_type
         self.joint_pairs = joint_pairs
+        self.downscale = downscale
 
         self.device = device
         self.ksize = ksize
@@ -362,14 +364,13 @@ class PoseDetector(object):
                     orig_img_h *
                     multiplier)),
                 interpolation=interpolation)
-            bbox = (self.inference_img_size,
-                    max(self.inference_img_size, img.shape[1]))
             padded_img, pad = self.pad_image(
                 img, self.downscale, (104, 117, 123))
 
             x_data = self.preprocess(padded_img)
             if self.device >= 0:
-                x_data = cuda.to_gpu(x_data)
+                x_data = cuda.to_gpu(x_data, device=self.device)
+            x_data = x_data.astype('f')
 
             h1s, h2s = self.model(x_data)
 
@@ -421,6 +422,9 @@ class PoseDetector(object):
         return poses, scores, self.all_peaks
 
     def preprocess(self, x):
+        x = x.astype('f')
+        x /= 255
+        x -= 0.5
         x = x.transpose(2, 0, 1)
         return x[None, ]
 

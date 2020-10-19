@@ -50,9 +50,10 @@ class OpenPoseVisReport(chainer.training.extensions.Evaluator):
         for batch in it:
             for sample in batch:
                 img = sample[0]
+                img = np.asarray(np.clip((img + 0.5) * 255.0, 0, 255),
+                                 dtype=np.uint8)
                 img = img.transpose(1, 2, 0)
                 pose, score, all_peaks = target(img)
-                img = np.asarray((img + 0.5) * 255.0, dtype=np.uint8)
                 imgs.append(img)
                 pred_scores.append(score)
                 pred_poses.append(pose)
