@@ -2,7 +2,7 @@ import pkg_resources
 
 
 __version__ = pkg_resources.get_distribution(
-    'chainer_openpose').version
+    'chainer-openpose').version
 
 
 from chainer_openpose import datasets  # NOQA
