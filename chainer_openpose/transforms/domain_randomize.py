@@ -1,6 +1,49 @@
 import random
+from pathlib import Path
 
 import numpy as np
+from PIL import Image
+import gdown
+
+download_dir = Path('~/.project_t').expanduser()
+
+
+def download_bg_dataset():
+    gdrive_id = '1N0SEwYo_GxFBFz_HXQzZQ4S1MjNASMhu'
+    url = 'https://drive.google.com/uc?id={}'.format(
+        gdrive_id)
+
+    project_path = download_dir / 'bg-20k'
+    if project_path.exists():
+        return project_path
+    gdown.cached_download(
+        url,
+        path=str(download_dir / 'bg-20k.tar.gz'),
+        postprocess=gdown.extractall,
+    )
+    return project_path
+
+
+bg_paths = sorted(list((download_bg_dataset() / 'train').glob('*.jpg')))
+
+
+def random_crop_with_size(pil_img, image_size=(300, 300)):
+    w, h = pil_img.size
+    image_height, image_width = image_size
+    if w < image_width or h < image_height:
+        cv_img = squared_padding_image(np.array(pil_img), image_width)
+        pil_img = Image.fromarray(cv_img)
+        w, h = pil_img.size
+    if w - image_width > 0:
+        x = np.random.randint(0, w - image_width)
+    else:
+        x = 0
+    if h - image_height > 0:
+        y = np.random.randint(0, h - image_height)
+    else:
+        y = 0
+    crop_img = pil_img.crop((x, y, x + image_width, y + image_height))
+    return crop_img
 
 
 def random_domain_randomize_background(image_rgb, image_mask):
@@ -33,6 +76,18 @@ def domain_randomize_background(image_rgb, image_mask):
     :rtype: PIL.image.image
 
     """
+    if np.random.uniform(0, 1) < 0.5:
+        # use real image
+        image_rgb = image_rgb.transpose(1, 2, 0)
+        bg_path = np.random.choice(bg_paths)
+        pil_bg_img = Image.open(bg_path)
+        bg_img = random_crop_with_size(pil_bg_img,
+                                       (image_rgb.shape[0], image_rgb.shape[1]))
+        bg_img = np.array(bg_img, dtype=np.uint8)
+        image_rgb[image_mask == -1] = bg_img[image_mask == -1]
+        return image_rgb.transpose(2, 0, 1)
+        # import ipdb
+        # ipdb.set_trace()
 
     # First, mask the rgb image
     rgb_mask = np.zeros_like(image_rgb)
