@@ -58,7 +58,7 @@ def random_domain_randomize_background(image_rgb, image_mask):
         return domain_randomize_background(image_rgb, image_mask)
 
 
-def domain_randomize_background(image_rgb, image_mask):
+def domain_randomize_background(image_rgb, image_mask, prob=0.5):
     """
 
     This function applies domain randomization
@@ -76,7 +76,7 @@ def domain_randomize_background(image_rgb, image_mask):
     :rtype: PIL.image.image
 
     """
-    if np.random.uniform(0, 1) < 0.5:
+    if np.random.uniform(0, 1) < prob:
         # use real image
         image_rgb = image_rgb.transpose(1, 2, 0)
         bg_path = np.random.choice(bg_paths)
